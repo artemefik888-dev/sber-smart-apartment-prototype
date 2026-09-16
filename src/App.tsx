@@ -1,252 +1,316 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { track, trackImpression } from './analytics'
 import {
-  apartmentSolutions,
   calculatorServices,
-  formatPrice,
-  levels,
-  readySets,
-  rooms,
-  solutionModules,
-  type Level,
+  existingFaq,
+  figmaRoomsUrl,
+  homeServices,
+  materials,
+  smartQuestionTitles,
 } from './data'
 
-const CALCULATOR_KEY = 'sber-smart-apartment-calculator-v1'
+const CALCULATOR_KEY = 'sber-smart-apartment-calculator-v2'
 
-function PrototypeBadge({ compact = false }: { compact?: boolean }) {
-  return <span className={`prototype-badge${compact ? ' prototype-badge--compact' : ''}`}>Интерактивный прототип · демонстрационный макет</span>
+function Logo() {
+  return (
+    <span className="logo" aria-label="СберУслуги"><img src="./assets/main-logo.svg" alt="СберУслуги" /></span>
+  )
 }
 
 function Header() {
+  const location = useLocation()
+  const isHelp = location.pathname.startsWith('/help')
+
   return (
-    <header className="header">
-      <div className="shell header__inner">
-        <Link className="brand" to="/" aria-label="СберУслуги — на главную">
-          <span className="brand__mark">✓</span><span>СБЕР УСЛУГИ</span><small className="header-demo">DEMO</small>
-        </Link>
-        <nav className="nav" aria-label="Основная навигация">
-          <Link to="/">Ремонт</Link>
-          <Link to="/help/services?section=smart-apartment">Помощь</Link>
-          <Link className="nav__primary" to="/calculator">Рассчитать ремонт</Link>
-        </nav>
+    <header className="site-header">
+      <div className="page-width site-header__inner">
+        <Link to="/" aria-label="СберУслуги — на главную"><Logo /></Link>
+        {!isHelp && (
+          <nav className="main-nav" aria-label="Основная навигация">
+            <Link to="/?anchor=services">Услуги</Link>
+            <Link to="/?anchor=offers">Акции</Link>
+            <Link to="/?anchor=how">Как это работает</Link>
+            <Link to="/?anchor=portfolio">Портфолио</Link>
+            <Link to="/?anchor=faq">Вопрос-ответ</Link>
+          </nav>
+        )}
+        <span className="login">Войти</span>
       </div>
     </header>
   )
 }
 
 function Home() {
+  const location = useLocation()
+  const carouselRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const anchor = new URLSearchParams(location.search).get('anchor')
+    if (anchor) window.setTimeout(() => document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth' }), 50)
+  }, [location.search])
+
   useEffect(() => trackImpression('home_service_card'), [])
+
+  const moveCarousel = (direction: -1 | 1) => {
+    carouselRef.current?.scrollBy({ left: direction * 396, behavior: 'smooth' })
+  }
 
   return (
     <main>
-      <section className="shell hero">
-        <div className="hero__copy">
-          <PrototypeBadge />
-          <p className="eyebrow">Ремонт с комфортом</p>
-          <h1>Дом, который понимает вас</h1>
-          <p className="lead">Добавьте Умный дом Sber в проект ремонта — от сценариев освещения до защиты от протечек.</p>
-          <div className="actions">
-            <Link className="button" to="/help/services?section=smart-apartment">Посмотреть решения</Link>
-            <Link className="button button--ghost" to="/calculator?smart=1&source=home-hero">Добавить к ремонту</Link>
+      <section className="page-width home-hero" style={{ backgroundImage: "url('./assets/home-banner.webp')" }}>
+        <div className="home-hero__content">
+          <h1>Ремонт с&nbsp;комфортом</h1>
+          <p>Оплачивайте работу поэтапно и следите за ходом ремонта онлайн с помощью сервиса «Ремонт со СберУслугами»</p>
+          <div className="button-row">
+            <Link className="primary-button" to="/calculator">Оставить заявку</Link>
+            <Link className="secondary-button" to="/?anchor=portfolio">Посмотреть примеры</Link>
           </div>
-        </div>
-        <div className="hero__visual">
-          <img src="./assets/smart-home-hero.avif" alt="Интерьер с системой умного дома" />
-          <div className="hero__caption"><span className="pulse" /> Умный дом Sber</div>
         </div>
       </section>
 
-      <section className="shell section">
-        <p className="eyebrow">Услуги для ремонта</p>
-        <h2>Всё нужное — в одной заявке</h2>
-        <div className="service-grid">
-          <article className="service-card">
-            <div className="service-card__art service-card__art--capital">К</div>
-            <h3>Капитальный ремонт</h3>
-            <p>Полный цикл работ от демонтажа до чистовой отделки.</p>
-          </article>
-          <article className="service-card service-card--smart" data-testid="home-smart-card">
-            <div className="service-card__art"><img src="./assets/smart-lamp.avif" alt="Умная лампа Sber" /></div>
-            <span className="pill">Новая услуга</span>
-            <h3>Умная квартира Sber</h3>
-            <p>Откройте для себя новый опыт жизни в квартире с Умным домом Sber. Он создаёт комфортную атмосферу и выполняет привычные действия по одной команде. Систему установят и настроят вместе с ремонтом.</p>
-            <Link className="text-link" to="/help/services?section=smart-apartment">Подробнее <span>→</span></Link>
-            <small>Доступно в Москве и Санкт-Петербурге</small>
-          </article>
-          <article className="service-card">
-            <div className="service-card__art service-card__art--control">СК</div>
-            <h3>Строительный контроль</h3>
-            <p>Проверка качества и сроков выполнения работ.</p>
-          </article>
+      <section className="page-width features" aria-label="Преимущества">
+        <div className="feature-image"><img src="./assets/home-gift.webp" alt="Преимущества" /></div>
+        <article><span className="line-icon">✓</span><h2>Проверенные исполнители</h2><p>Все исполнители прошли юридическую проверку и дают гарантию на выполненные работы</p></article>
+        <article><span className="line-icon">○</span><h2>Персональный менеджер</h2><p>Внимательный сотрудник службы поддержки будет рядом на протяжении всего ремонта и поможет найти ответ на ваш вопрос*</p></article>
+        <article><span className="line-icon">□</span><h2>Безопасная оплата</h2><p>Ваши средства размещаются на специальном счете** и перечисляются исполнителю только после того, как вы примете работы</p></article>
+        <article><span className="line-icon">◇</span><h2>Дизайн-проект или технадзор в подарок</h2><p>Вы можете получить бонус при использовании кредитных средств*** на ремонт</p></article>
+      </section>
+
+      <section className="page-width home-section" id="services">
+        <div className="section-title-row">
+          <h2>Услуги</h2>
+          <div className="carousel-buttons" aria-label="Прокрутка услуг">
+            <button type="button" aria-label="Предыдущие услуги" onClick={() => moveCarousel(-1)}>←</button>
+            <button type="button" aria-label="Следующие услуги" onClick={() => moveCarousel(1)}>→</button>
+          </div>
         </div>
+        <div className="services-carousel" ref={carouselRef} data-testid="services-carousel">
+          {homeServices.map((service) => (
+            <article className="service-card" key={service.id} data-service-id={service.id} data-testid={service.id === 'smart' ? 'home-smart-card' : undefined}>
+              {service.image ? <img className="service-card__image" src={service.image} alt={service.name} /> : <div className="service-card__image service-card__placeholder">Утверждённое изображение<br />требует разрешения на публикацию</div>}
+              <div className="service-card__body">
+                <h3>{service.name}</h3>
+                <p>{service.description}</p>
+                {service.id === 'smart' ? (
+                  <Link className="standard-link" to="/help/services?section=smart-apartment">Подробнее об услуге <span>→</span></Link>
+                ) : (
+                  <Link className="standard-link" to="/help/services">Подробнее об услуге <span>→</span></Link>
+                )}
+                <div className="availability"><span aria-hidden="true">⌖</span>{service.availability}</div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="page-width quick-application">
+        <div className="quick-application__form">
+          <h2>Заполните заявку за 3 шага</h2>
+          <p>Мы перезвоним, чтобы сориентировать по цене и предложить максимально подходящего исполнителя</p>
+          <fieldset><legend>Тип жилья</legend><label><input type="radio" name="homeType" defaultChecked /> Новостройка</label><label><input type="radio" name="homeType" /> Вторичка</label></fieldset>
+          <label className="plain-field">Укажите площадь квартиры, м²<input type="number" min="10" aria-label="Укажите площадь квартиры, м²" /></label>
+          <fieldset className="room-buttons"><legend>Количество комнат</legend>{[1, 2, 3, 4, 5].map((room) => <button type="button" key={room}>{room}</button>)}</fieldset>
+          <Link className="primary-button" to="/calculator">Продолжить</Link>
+        </div>
+        <img src="./assets/calculator.webp" alt="" />
+      </section>
+
+      <section className="page-width home-section offer" id="offers">
+        <h2>Предложения для вас</h2>
+        <div className="offer__content"><div><h3>Получите бонус за кредит на ремонт</h3><p>При использовании кредитных средств на ремонт с нашим сервисом вы можете получить один из бонусов:</p><p><strong>Приемка черновых работ</strong><br />с инженером при сумме кредита от 500 000 ₽</p><p><strong>Дизайн-проект</strong><br />в подарок при сумме кредита от 900 000 ₽</p><a className="primary-button" href="https://www.sberbank.ru/ru/person/dist_services/vyezdnoj-menedzher?utm_source=uslugi&utm_medium=link&utm_campaign=repair&utm_content=landing" target="_blank" rel="noreferrer">Узнать свой кредитный потенциал</a></div></div>
+      </section>
+
+      <section className="page-width home-section" id="how">
+        <h2>Как это работает?</h2>
+        <div className="how-grid">
+          {[
+            ['Заявка', 'Оставьте заявку на сайте - менеджер свяжется с вами и уточнит детали, чтобы выбрать ремонтную компанию под ваш запрос'],
+            ['Договор', 'К вам выезжает представитель компании и готовит смету. Если смета вас устраивает, то вы заключаете договор'],
+            ['Начало ремонта', 'План ремонта отображается в вашем личном кабинете. Внесите предоплату за первый этап работ, чтобы ремонт начался'],
+            ['Приемка', 'Вы принимаете работы онлайн или оффлайн. Деньги будут отправлены исполнителю только после того, как вы будете удовлетворены качеством работ'],
+          ].map(([title, text], index) => <article key={title}><img src={`./assets/how/how-${index + 1}.webp`} alt={title} /><span>{index + 1}</span><h3>{title}</h3><p>{text}</p></article>)}
+        </div>
+      </section>
+
+      <section className="page-width home-section" id="portfolio">
+        <h2>Работы наших партнеров</h2>
+        <div className="portfolio-grid">
+          {[
+            ['1-комнатная квартира в ЖК Дубрава, Казань', '100 м²', '6 месяцев', '7 232 000 ₽'],
+            ['2-комнатная квартира в ЖК Династия', '57 м²', '3 месяца', '1 149 800 ₽'],
+            ['2-комнатная квартира в ЖК Мята', '34 м²', '3 месяца', '2 200 000 ₽'],
+          ].map(([title, area, time, price], index) => <article key={title}><img src={`./assets/portfolio/portfolio-${index + 1}.webp`} alt="Портфолио" /><div><h3>{title}</h3><p>{area} <span>{time}</span></p><strong>{price}</strong></div></article>)}
+        </div>
+      </section>
+
+      <section className="page-width home-section faq-preview" id="faq">
+        <div className="section-title-row"><h2>Вопрос-ответ</h2><Link className="standard-link" to="/help/services">Перейти в раздел</Link></div>
+        {['Что такое «Ремонт со СберУслугами»?', 'Как мне связаться с клиентским сервисом?', 'Сколько стоят ваши услуги?'].map((question) => <div key={question}>{question}<span>⌄</span></div>)}
+      </section>
+
+      <section className="page-width consultation">
+        <h2>Заявка на консультацию</h2>
+        <p>Оставьте свой номер телефона для консультации с менеджером и заполнения заявки на ремонт</p>
+        <div className="consultation__row"><label><span>+7</span><input type="tel" aria-label="Номер телефона" /></label><button type="button" className="primary-button">Оставить заявку</button></div>
+        <label className="consent"><input type="checkbox" /> Даю согласие на получение СМС-сообщений от сервиса, а также принимаю <a href="https://remont.sberuslugi.ru/help/agreements" target="_blank" rel="noreferrer">соглашение (оферту)</a></label>
       </section>
     </main>
   )
 }
 
-function RoomConfigurator() {
-  const navigate = useNavigate()
-  const [roomId, setRoomId] = useState(rooms[0].id)
-  const [level, setLevel] = useState<Level>('Базовый')
-  const room = rooms.find((item) => item.id === roomId) ?? rooms[0]
-  const variant = room.variants[level]
-
-  useEffect(() => trackImpression('room_configurator'), [])
-
+function AccordionRow({ id, title, open, onToggle, children, testId }: { id?: string; title: string; open: boolean; onToggle: () => void; children: ReactNode; testId?: string }) {
   return (
-    <section id="rooms" className="detail-section" data-testid="room-configurator">
-      <div className="section-heading">
-        <div><p className="eyebrow">Решения по комнатам</p><h2>Соберите подходящий сценарий</h2></div>
-        <span className="counter">6 комнат · 3 уровня</span>
-      </div>
-      <div className="room-tabs" role="tablist" aria-label="Комнаты">
-        {rooms.map((item) => (
-          <button key={item.id} className={roomId === item.id ? 'room-tab is-active' : 'room-tab'} onClick={() => setRoomId(item.id)} role="tab" aria-selected={roomId === item.id}>
-            <span>{item.short}</span>{item.name}
-          </button>
-        ))}
-      </div>
-      <div className="level-tabs" aria-label="Уровень решения">
-        {levels.map((item) => <button key={item} className={level === item ? 'is-active' : ''} onClick={() => setLevel(item)}>{item}</button>)}
-      </div>
-      <article className="room-result" key={`${roomId}-${level}`}>
-        <div className="room-result__intro">
-          <span className="pill pill--white">{room.name} · {level}</span>
-          <h3>{variant.title}</h3>
-          <p>{variant.benefit}</p>
-          <div className="room-result__note"><span>i</span> Окончательный состав и стоимость специалист определит после консультации.</div>
-          <button className="button" onClick={() => navigate(`/calculator?smart=1&source=room&room=${room.id}&level=${encodeURIComponent(level)}`)}>Добавить к ремонту</button>
-        </div>
-        <div className="room-result__details">
-          <h4>Что умеет</h4>
-          <ul className="check-list">{variant.scenarios.map((scenario) => <li key={scenario}>{scenario}</li>)}</ul>
-          <h4>Состав решения</h4>
-          <div className="device-list">{variant.devices.map((device) => <span key={device}>{device}</span>)}</div>
-          <details className="inline-details"><summary>Дополнительные возможности</summary><p>Сценарии можно уточнить вместе со специалистом: объединить комнаты, добавить голосовое управление, автоматику штор и совместимые устройства.</p></details>
-        </div>
-      </article>
-    </section>
+    <div className={`faq-item${open ? ' is-open' : ''}`} id={id}>
+      <button type="button" className="faq-question" aria-expanded={open} onClick={onToggle} data-testid={testId}>
+        <span>{title}</span><i aria-hidden="true" />
+      </button>
+      {open && <div className="faq-answer">{children}</div>}
+    </div>
   )
 }
 
-function ReadySets() {
-  const navigate = useNavigate()
-  return (
-    <section id="sets" className="detail-section">
-      <div className="section-heading"><div><p className="eyebrow">Готовые наборы</p><h2>Начните с одного сценария</h2></div><p>Устройства, установка и настройка уточняются на консультации.</p></div>
-      <div className="set-grid">
-        {readySets.map((set) => (
-          <article className={`set-card set-card--${set.accent}`} key={set.id}>
-            <div className="set-card__icon" aria-hidden="true">{set.name.split(' ')[1]?.slice(0, 1) ?? 'У'}</div>
-            <p className="set-card__price">{set.price}</p>
-            <h3>{set.name}</h3>
-            <p>{set.description}</p>
-            <details onToggle={(event) => event.currentTarget.open && track('smart_apartment_expand', { placement: 'ready_set', set_id: set.id })}>
-              <summary>Что входит</summary>
-              <ul>{set.devices.map((device) => <li key={device}>{device}</li>)}</ul>
-            </details>
-            <button className="button button--dark" onClick={() => navigate(`/calculator?smart=1&source=ready-set&preset=${set.id}`)}>Выбрать набор</button>
-          </article>
-        ))}
-      </div>
-    </section>
-  )
+function TextAnswer({ text }: { text: string }) {
+  return <>{text.split(/\n\n/).map((paragraph) => <p key={paragraph}>{paragraph.split('\n').map((line, index) => <Fragment key={`${line}-${index}`}>{index > 0 && <br />}{line}</Fragment>)}</p>)}</>
 }
 
-function SolutionCard({ solution }: { solution: (typeof apartmentSolutions)[number] }) {
-  const navigate = useNavigate()
-  const [selected, setSelected] = useState<string[]>([])
-  const total = solution.price + solutionModules.filter((module) => selected.includes(module.id)).reduce((sum, module) => sum + module.price, 0)
+const rooms = ['Ванная', 'Прихожая', 'Гостиная', 'Детская', 'Кухня', 'Спальня']
+const readySets = [
+  ['Умная прихожая', 'от 12 560 ₽', 'Контроль входной двери, автоматическое включение света при открытии двери, колонка приветствует гостя, уведомление о входе/выходе.'],
+  ['Умный свет', 'индивидуальный расчёт', 'Позволяет управлять светом удаленно через приложение или голосовыми командами.'],
+  ['Умная спальня', '22 740 ₽', 'Ночью в комнате будет прохладно, при котором сон лучше и глубже, а днём — идеальная для активности умеренная температура.'],
+  ['Умный климат', 'от 21 550 ₽', 'Умный дом следит за микроклиматом в квартире, помогает автоматически поддерживать идеальную температуру и влажность.'],
+  ['Безопасный дом', 'от 16 550 ₽', 'Защита от воров, забытых утюгов, перерасхода электричества и затопления квартиры, соседей.'],
+  ['Умная детская', '15 360 ₽', 'Умный дом создаст в детской правильную температуру для сна и мягкое освещение, которое постепенно погаснет.'],
+] as const
+const wholeApartment = [
+  ['компактное решение для студии или однокомнатной квартиры', '39 090 ₽'],
+  ['решение для просторной однокомнатной или двухкомнатной квартиры', '57 630 ₽'],
+  ['расширенное решение для двухкомнатной квартиры и квартиры большей площади', '79 960 ₽'],
+] as const
 
-  return (
-    <article className={`solution-card solution-card--${solution.id}`}>
-      <div className="solution-card__top">
-        <span className="solution-card__size">{solution.size}</span>
-        <div><p>{solution.name}</p><h3>{formatPrice(solution.price)}</h3></div>
-      </div>
-      <details className="inline-details"><summary>Базовый состав</summary><div className="device-list">{solution.devices.map((device) => <span key={device}>{device}</span>)}</div></details>
-      <div className="module-list">
-        <h4>Добавить модули</h4>
-        {solutionModules.map((module) => (
-          <label key={module.id} className={selected.includes(module.id) ? 'module is-selected' : 'module'}>
-            <input type="checkbox" checked={selected.includes(module.id)} onChange={(event) => setSelected((current) => event.target.checked ? [...current, module.id] : current.filter((id) => id !== module.id))} />
-            <span><strong>{module.name}</strong><small>+ {formatPrice(module.price)}</small></span>
-            <details className="module__details"><summary aria-label={`Состав модуля ${module.name}`}>i</summary><p>{module.devices.join(', ')}</p></details>
-          </label>
-        ))}
-      </div>
-      <div className="solution-card__total"><span>Итого за оборудование</span><strong data-testid={`solution-total-${solution.id}`}>{formatPrice(total)}</strong><small>Монтаж и настройка — после консультации</small></div>
-      <button className="button" onClick={() => navigate(`/calculator?smart=1&source=apartment-solution&preset=${solution.id}&modules=${selected.join(',')}`)}>Добавить решение</button>
-    </article>
-  )
+function SmartAnswer({ index, showReadySolutions }: { index: number; showReadySolutions: () => void }) {
+  switch (index) {
+    case 0:
+      return <>
+        <p>«Умная квартира Sber» объединяет освещение, климат, защиту от протечек, контроль событий и мультимедиа в одну систему управления. Исполнитель учитывает устройства в проекте ремонта, устанавливает их на подходящих этапах работ, настраивает выбранные сценарии и показывает клиенту, как пользоваться системой.</p>
+        <p>Управлять совместимыми устройствами можно в приложении и с помощью доступных голосовых команд. Точный состав системы зависит от площади, количества комнат, инженерных решений и задач клиента.</p>
+        <p className="answer-links"><button type="button" className="inline-link" onClick={showReadySolutions}>Посмотреть готовые решения</button><a href={materials.devices} target="_blank" rel="noreferrer">Каталог устройств Умного дома Sber</a></p>
+      </>
+    case 1:
+      return <>
+        <p><strong>Освещение:</strong> выключатели, розетки, лампы и сценарии света по времени, команде или событию.</p>
+        <p><strong>Климат:</strong> контроль температуры и влажности, управление совместимым отоплением и тёплым полом.</p>
+        <p><strong>Спокойствие за квартиру:</strong> датчики открытия и движения, защита от протечек и уведомления о событиях.</p>
+        <p><strong>Мультимедиа и голосовое управление:</strong> совместимые колонки и устройства для запуска сценариев.</p>
+        <p>Состав каждой категории уточняет специалист после знакомства с проектом квартиры.</p>
+      </>
+    case 2:
+      return <>
+        <p>Выберите «Умную квартиру» в конфигураторе заявки или сообщите об этом менеджеру во время консультации. Менеджер уточнит задачи и передаст их исполнителю. Исполнитель предложит состав оборудования, проверит технические условия, добавит работы и устройства в смету. После согласования система становится частью общего проекта ремонта.</p>
+        <p><strong>Этапы:</strong> заявка, консультация, проект и смета, монтаж, настройка и передача.</p>
+      </>
+    case 3:
+      return <>
+        <h4>Возможности умной квартиры</h4>
+        <p>В каждом готовом материале представлены три уровня: Базовый, Комфорт и Максимум.</p>
+        <ul className="material-list">{rooms.map((room) => <li key={room}><a href={figmaRoomsUrl} target="_blank" rel="noreferrer">{room}</a><span>готовый материал Figma</span></li>)}</ul>
+        <h4>Готовые наборы</h4>
+        <ul className="material-list">{readySets.map(([name, price, text]) => <li key={name}><a href="#materials-publication-approval">{name} — {price}</a><span>{text}</span></li>)}</ul>
+        <h4>Решения для всей квартиры</h4>
+        <ul className="material-list">{wholeApartment.map(([name, price]) => <li key={name}><a href="#materials-publication-approval">{name} — {price}</a><span>Можно расширить: Безопасность — 29 990 ₽; расширенный Климат — 14 770 ₽; расширенный Свет — 3 980 ₽; Мультимедиа — 16 989 ₽.</span></li>)}</ul>
+        <p className="verification-note" id="materials-publication-approval">Утверждённые слайды 5–14 требуют отдельного разрешения на публичное размещение. В прототипе оставлены нейтральные ссылки-заглушки.</p>
+      </>
+    case 4:
+      return <p>Да. Готовый набор служит отправной точкой. Специалист может изменить количество устройств, добавить нужные комнаты или функции и исключить лишние позиции. Перед расчётом исполнитель проверяет планировку, электрику и совместимость оборудования.</p>
+    case 5:
+      return <p>Дизайнер или инженер отмечает размещение выключателей, розеток, датчиков, терморегуляторов, колонок и других устройств. Комплектатор готовит спецификацию оборудования. Монтаж, настройка и дополнительные работы указываются в смете отдельно от стоимости устройств, чтобы клиент видел полный состав решения.</p>
+    case 6:
+      return <>
+        <p>Стоимость складывается из оборудования, проектирования, монтажа и настройки. На неё влияют площадь квартиры, количество комнат, выбранные функции и состояние электрики. Точный расчёт исполнитель подготовит после консультации и проверки проекта.</p>
+        <p>Примеры стоимости готовых наборов и решений приведены в ответе «Какие готовые решения можно выбрать». Окончательная комплектация и стоимость определяются после консультации. Монтаж и настройка могут рассчитываться отдельно.</p>
+      </>
+    case 7:
+      return <>
+        <p>Исполнитель устанавливает устройства на подходящих этапах ремонта по согласованной схеме. После монтажа специалист подключает совместимые устройства, настраивает выбранные сценарии, проверяет их работу и показывает клиенту основные действия в приложении и с помощью голосового управления.</p>
+        <p><a href={materials.installation} target="_blank" rel="noreferrer">Инструкция по монтажу и настройке</a></p>
+      </>
+    case 8:
+      return <>
+        <p>При передаче системы клиент получает доступ к установленным устройствам, перечень настроенных сценариев, инструкцию по использованию и контакты поддержки. Исполнитель показывает работу основных функций и объясняет, как изменить доступные настройки.</p>
+        <p>Для реального запуска отдельно закрепляются состав акта передачи, правила привязки устройств к аккаунту клиента и граница ответственности между исполнителем, СберУслугами и SberDevices.</p>
+      </>
+    case 9:
+      return <ul className="simple-links"><li><a href={materials.scenarios} target="_blank" rel="noreferrer">Каталог сценариев и настроек</a></li><li><a href={materials.devices} target="_blank" rel="noreferrer">Каталог устройств Умного дома Sber</a></li></ul>
+    case 10:
+      return <p>Систему можно дополнить совместимыми устройствами и новыми сценариями. Перед покупкой следует проверить совместимость с уже установленным оборудованием и технические условия в квартире.</p>
+    case 11:
+      return <>
+        <h4>Для пользователей устройств</h4>
+        <p><a href="tel:900">900</a> — бесплатно с мобильных по России<br /><a href="tel:+74955005550">+7 495 500-55-50</a> — по тарифу оператора<br /><a href="https://t.me/sberdevices_support_bot" target="_blank" rel="noreferrer">@sberdevices_support_bot</a><br /><a href="https://max.ru/id7730253720_bot" target="_blank" rel="noreferrer">max.ru/id7730253720_bot</a></p>
+        <h4>Для профессионалов и электриков</h4>
+        <p><a href="tel:88003006556">8 800 300-65-56</a> — звонок по России бесплатный<br /><a href={materials.professionalSupport} target="_blank" rel="noreferrer">Чат на официальном сайте SberDevices</a><br /><a href={materials.contacts} target="_blank" rel="noreferrer">Как с нами связаться</a></p>
+        <p className="verification-note">Контакты требуют подтверждения владельцем поддержки.</p>
+      </>
+    default:
+      return null
+  }
 }
 
-function ApartmentSolutions() {
-  return (
-    <section id="apartments" className="detail-section">
-      <div className="section-heading"><div><p className="eyebrow">Решения для квартиры</p><h2>Основа, которую можно расширить</h2></div><p>Выберите размер квартиры и отметьте дополнительные модули — сумма обновится сразу.</p></div>
-      <div className="solution-grid">{apartmentSolutions.map((solution) => <SolutionCard key={solution.id} solution={solution} />)}</div>
-    </section>
-  )
+function HelpIcon({ type }: { type: number }) {
+  const icons = ['mobile', 'man_badge', 'case', 'card_on_card', 'safe', 'gift', 'document_checkmark']
+  return <span className="help-icon" aria-hidden="true"><img src={`./icons/help/${icons[type]}.svg`} alt="" /></span>
 }
 
 function HelpPage() {
   const location = useLocation()
-  const [open, setOpen] = useState(new URLSearchParams(location.search).get('section') === 'smart-apartment')
-  const sectionRef = useRef<HTMLDivElement>(null)
+  const smartGroupRef = useRef<HTMLDivElement>(null)
+  const [existingOpen, setExistingOpen] = useState<string | null>(null)
+  const [smartOpen, setSmartOpen] = useState<Set<number>>(() => new Set())
 
   useEffect(() => {
     if (new URLSearchParams(location.search).get('section') !== 'smart-apartment') return
-    setOpen(true)
-    window.setTimeout(() => sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80)
+    setSmartOpen(new Set([0]))
+    window.setTimeout(() => smartGroupRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
   }, [location.search])
 
-  const jumpTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const toggleSmart = (index: number) => {
+    setSmartOpen((current) => {
+      const next = new Set(current)
+      if (next.has(index)) next.delete(index)
+      else next.add(index)
+      return next
+    })
+    track('smart_apartment_expand', { placement: 'help_faq', question_number: index + 1 })
+  }
+
+  const showReadySolutions = () => {
+    setSmartOpen((current) => new Set([...current, 3]))
+    window.setTimeout(() => document.getElementById('smart-question-4')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+  }
+
+  const menu = ['О сервисе', 'Исполнители', 'Услуги', 'Оплата и возвраты', 'Кредитные предложения', 'Акции', 'Условия использования']
 
   return (
-    <main className="shell help-page">
-      <PrototypeBadge compact />
+    <main className="page-width help-page">
+      <Link className="back-home" to="/"><span>‹</span> На главную</Link>
+      <h1>Помощь пользователям</h1>
       <div className="help-layout">
-        <aside className="help-menu" aria-label="Разделы помощи">
-          <strong>Помощь</strong>
-          <a href="#/help/services">Услуги</a><span>Заказ и оплата</span><span>Работа с исполнителем</span><span>Гарантии</span>
+        <aside className="help-sidebar" aria-label="Разделы помощи">
+          {menu.map((item, index) => <div className={item === 'Услуги' ? 'is-active' : ''} key={item}><HelpIcon type={index} /><span>{item}</span></div>)}
         </aside>
-        <div className="help-content">
-          <p className="eyebrow">Помощь пользователям</p><h1>Услуги для ремонта</h1>
+        <section className="help-content">
+          <h2>Услуги</h2>
           <div className="faq-list">
-            <button className="faq-row"><span>Что входит в капитальный ремонт</span><i>⌄</i></button>
-            <div id="smart-apartment" ref={sectionRef} className={open ? 'smart-accordion is-open' : 'smart-accordion'}>
-              <button className="faq-row faq-row--smart" aria-expanded={open} onClick={() => { const next = !open; setOpen(next); if (next) track('smart_apartment_expand', { placement: 'help_accordion' }) }} data-testid="smart-accordion-trigger">
-                <span><b>Новое</b> Что такое «Умная квартира Sber»</span><i>{open ? '×' : '+'}</i>
-              </button>
-              {open && <div className="smart-accordion__body">
-                <div className="detail-hero">
-                  <div><span className="partner-mark"><span className="brand__mark">✓</span> Умный дом Sber</span><h2>Комфорт и безопасность — уже в проекте ремонта</h2><p>Специалист подберёт устройства, предусмотрит электрику, установит оборудование и настроит сценарии вместе с ремонтом.</p><Link className="button" to="/calculator?smart=1&source=help-hero">Добавить услугу</Link></div>
-                  <div className="detail-hero__orb"><span>18</span><small>вариантов<br />по комнатам</small></div>
-                </div>
-                <nav className="anchor-nav" aria-label="Содержание страницы">
-                  <button onClick={() => jumpTo('benefits')}>Преимущества</button><button onClick={() => jumpTo('rooms')}>По комнатам</button><button onClick={() => jumpTo('sets')}>Наборы</button><button onClick={() => jumpTo('apartments')}>Вся квартира</button>
-                </nav>
-                <section id="benefits" className="detail-section detail-section--compact">
-                  <div className="benefit-grid">
-                    <article><span>01</span><h3>Вместе с ремонтом</h3><p>Электрика и места установки учитываются заранее.</p></article>
-                    <article><span>02</span><h3>Одна команда</h3><p>Свет, климат и техника объединяются в сценарии.</p></article>
-                    <article><span>03</span><h3>Безопасность</h3><p>Датчики вовремя сообщат о движении, открытии и воде.</p></article>
-                    <article><span>04</span><h3>Под ключ</h3><p>Специалист установит, подключит и покажет, как всё работает.</p></article>
-                  </div>
-                </section>
-                <RoomConfigurator />
-                <ReadySets />
-                <ApartmentSolutions />
-                <section className="final-cta"><div><p className="eyebrow">Следующий шаг</p><h2>Обсудите будущую умную квартиру</h2><p>Добавьте услугу в расчёт ремонта. Специалист уточнит площадь, комнаты и нужные сценарии.</p></div><Link className="button" to="/calculator?smart=1&source=help-footer">Добавить к расчёту</Link></section>
-              </div>}
-            </div>
-            <button className="faq-row"><span>Как работает строительный контроль</span><i>⌄</i></button>
-            <button className="faq-row"><span>Какие материалы потребуются</span><i>⌄</i></button>
+            {existingFaq.map((item) => <AccordionRow key={item.id} title={item.question} open={existingOpen === item.id} onToggle={() => setExistingOpen(existingOpen === item.id ? null : item.id)}><TextAnswer text={item.answer} /></AccordionRow>)}
           </div>
-        </div>
+          <div className="smart-faq-group" id="smart-apartment" ref={smartGroupRef} data-testid="smart-faq-group">
+            <h3>Умная квартира Sber</h3>
+            {smartQuestionTitles.map((title, index) => <AccordionRow id={`smart-question-${index + 1}`} key={title} title={title} open={smartOpen.has(index)} onToggle={() => toggleSmart(index)} testId={`smart-question-${index + 1}`}><SmartAnswer index={index} showReadySolutions={showReadySolutions} /></AccordionRow>)}
+          </div>
+        </section>
       </div>
+      <section className="questions-footer"><h2>Остались вопросы?</h2><p>Напишите нам на почту: <a href="mailto:request@sberuslugi.ru">request@sberuslugi.ru</a></p></section>
     </main>
   )
 }
@@ -257,35 +321,41 @@ type CalculatorState = {
   objectType: string
   area: string
   rooms: string
-  city: string
-  budget: string
+  functions: string
   hasProject: string
   repairStage: string
   comment: string
-  source: string
-  preset: string
 }
 
 const defaultCalculator: CalculatorState = {
-  step: 1, selectedServices: [], objectType: 'Квартира в новостройке', area: '55', rooms: '2', city: 'Москва', budget: 'До 3 000 000 ₽', hasProject: 'Нет', repairStage: 'Планирую ремонт', comment: '', source: '', preset: '',
+  step: 1,
+  selectedServices: [],
+  objectType: 'Вторичка',
+  area: '',
+  rooms: '1',
+  functions: '',
+  hasProject: 'Нет',
+  repairStage: 'Планирую ремонт',
+  comment: '',
 }
 
 function loadCalculator(): CalculatorState {
   try {
     const saved = localStorage.getItem(CALCULATOR_KEY)
     return saved ? { ...defaultCalculator, ...JSON.parse(saved) as Partial<CalculatorState> } : defaultCalculator
-  } catch { return defaultCalculator }
+  } catch {
+    return defaultCalculator
+  }
 }
 
 function CalculatorSummary({ state }: { state: CalculatorState }) {
   const selected = calculatorServices.filter((service) => state.selectedServices.includes(service.id))
   return (
     <aside className="calculator-summary">
-      <span className="step-badge">Шаг {state.step} из 3</span>
-      <h3>Ваш расчёт</h3>
-      {selected.length ? <ul>{selected.map((service) => <li key={service.id}>{service.name}{service.id === 'smart' && <span>Новое</span>}</li>)}</ul> : <p>Пока ничего не выбрано</p>}
-      {state.step > 1 && <div className="summary-data"><span>{state.city}</span><span>{state.area} м² · {state.rooms} комн.</span></div>}
-      <div className="summary-note"><strong>Стоимость рассчитает специалист</strong><p>После уточнения состава работ и консультации.</p></div>
+      <div className="summary-step"><span><b />••</span><strong>ШАГ {state.step} ИЗ 3</strong></div>
+      <p className="summary-label">ВАШ ОБЪЕКТ</p>
+      <p className="summary-object">{state.objectType}, {state.area ? `${state.area} м²` : 'м²'}, комнат: {state.rooms}</p>
+      {selected.length > 0 && <><p className="summary-label">ВЫБРАННЫЕ УСЛУГИ</p><ul data-testid="selected-services">{selected.map((service) => <li key={service.id}>{service.name}</li>)}</ul></>}
     </aside>
   )
 }
@@ -294,29 +364,29 @@ function CalculatorPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const [state, setState] = useState<CalculatorState>(loadCalculator)
-  const [expanded, setExpanded] = useState<string[]>([])
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const processedDeepLink = useRef(false)
   const allSelected = state.selectedServices.length === calculatorServices.length
 
-  useEffect(() => { localStorage.setItem(CALCULATOR_KEY, JSON.stringify(state)) }, [state])
-
+  useEffect(() => localStorage.setItem(CALCULATOR_KEY, JSON.stringify(state)), [state])
   useEffect(() => {
     const params = new URLSearchParams(location.search)
     if (params.get('smart') !== '1' || processedDeepLink.current) return
     processedDeepLink.current = true
-    const source = params.get('source') ?? 'deep-link'
-    const preset = params.get('preset') ?? params.get('room') ?? ''
-    setState((current) => current.selectedServices.includes('smart')
-      ? { ...current, step: 1, source, preset }
-      : { ...current, step: 1, selectedServices: [...current.selectedServices, 'smart'], source, preset })
-    track('smart_apartment_select', { placement: source, preset: preset || undefined })
+    setState((current) => ({ ...current, step: 1, selectedServices: current.selectedServices.includes('smart') ? current.selectedServices : [...current.selectedServices, 'smart'] }))
+    track('smart_apartment_select', { placement: params.get('source') ?? 'deep-link' })
     navigate('/calculator', { replace: true })
   }, [location.search, navigate])
 
   const update = (patch: Partial<CalculatorState>) => setState((current) => ({ ...current, ...patch }))
   const toggleExpanded = (id: string) => {
-    setExpanded((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id])
-    if (id === 'smart' && !expanded.includes(id)) track('smart_apartment_expand', { placement: 'calculator' })
+    setExpanded((current) => {
+      const next = new Set(current)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+    if (id === 'smart' && !expanded.has(id)) track('smart_apartment_expand', { placement: 'calculator' })
   }
   const toggleService = (id: string) => {
     const selected = state.selectedServices.includes(id)
@@ -324,65 +394,53 @@ function CalculatorPage() {
     if (id === 'smart') track(selected ? 'smart_apartment_deselect' : 'smart_apartment_select', { placement: 'calculator' })
   }
   const toggleAll = () => {
-    const hadSmart = state.selectedServices.includes('smart')
     const next = allSelected ? [] : calculatorServices.map((service) => service.id)
+    const hadSmart = state.selectedServices.includes('smart')
     update({ selectedServices: next })
     if (hadSmart !== next.includes('smart')) track(next.includes('smart') ? 'smart_apartment_select' : 'smart_apartment_deselect', { placement: 'select_all' })
   }
-  const goNext = () => {
+  const nextStep = () => {
     if (state.step === 1 && state.selectedServices.includes('smart')) track('smart_apartment_continue_selected', { selected_services: state.selectedServices })
     update({ step: Math.min(3, state.step + 1) })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   const submit = () => {
     const smartSelected = state.selectedServices.includes('smart')
-    track('smart_apartment_submit', { smart_selected: smartSelected, city: state.city, rooms: state.rooms, area: state.area, source: state.source, preset: state.preset })
-    track('smart_apartment_handoff_flag', { handoff_required: smartSelected, service_id: 'smart', source: state.source })
+    track('smart_apartment_submit', { smart_selected: smartSelected, area: state.area, rooms: state.rooms })
+    track('smart_apartment_handoff_flag', { handoff_required: smartSelected, service_id: 'smart' })
     navigate('/success')
   }
 
   return (
     <main className="calculator-page">
-      <div className="shell"><PrototypeBadge compact /></div>
-      <div className="shell calculator-layout">
+      <div className="page-width calculator-layout">
         <section className="calculator-main">
+          <div className="calculator-heading"><button type="button" aria-label="Назад" onClick={() => state.step > 1 ? update({ step: state.step - 1 }) : navigate('/')}>←</button><h1>{state.step === 1 ? 'Какие услуги потребуются?' : state.step === 2 ? 'Данные для консультации' : 'Заявка'}</h1></div>
           {state.step === 1 && <>
-            <p className="eyebrow">Расчёт ремонта</p><h1>Какие услуги потребуются?</h1><p className="page-lead">Можно выбрать несколько услуг. Детали уточним перед началом работ.</p>
-            <label className="select-all"><input type="checkbox" checked={allSelected} onChange={toggleAll} /> <span>Выбрать все услуги</span></label>
             <div className="calculator-services">
               {calculatorServices.map((service) => {
-                const isExpanded = expanded.includes(service.id)
+                const isOpen = expanded.has(service.id)
                 const isSelected = state.selectedServices.includes(service.id)
-                return <article key={service.id} className={`${isSelected ? 'calculator-service is-selected' : 'calculator-service'}${service.id === 'smart' ? ' calculator-service--smart' : ''}`} data-testid={service.id === 'smart' ? 'calculator-smart-service' : undefined}>
-                  <button className="calculator-service__expand" aria-expanded={isExpanded} onClick={() => toggleExpanded(service.id)}><span>{service.id === 'smart' && <b>Новое</b>}{service.name}</span><i>{isExpanded ? '−' : '+'}</i></button>
-                  <label className="check-control" aria-label={`${isSelected ? 'Убрать' : 'Выбрать'} услугу ${service.name}`}><input type="checkbox" checked={isSelected} onChange={() => toggleService(service.id)} /><span /></label>
-                  {isExpanded && <div className="calculator-service__description"><p>{service.description}</p>{service.id === 'smart' && <Link className="text-link" to="/help/services?section=smart-apartment">Посмотреть варианты →</Link>}</div>}
+                return <article className={`calculator-service${isSelected ? ' is-selected' : ''}`} key={service.id} data-service-id={service.id} data-testid={service.id === 'smart' ? 'calculator-smart-service' : undefined}>
+                  <button type="button" className="service-expand" aria-expanded={isOpen} onClick={() => toggleExpanded(service.id)}><span>{service.name}</span><i aria-hidden="true" /></button>
+                  <label className="service-check" aria-label={`${isSelected ? 'Убрать' : 'Выбрать'} услугу ${service.name}`}><input type="checkbox" checked={isSelected} onChange={() => toggleService(service.id)} /><span /></label>
+                  {isOpen && <div className="service-description"><p>{service.description}</p></div>}
                 </article>
               })}
             </div>
+            <label className="select-all"><span>Выбрать все услуги</span><input type="checkbox" checked={allSelected} onChange={toggleAll} /></label>
           </>}
-          {state.step === 2 && <>
-            <p className="eyebrow">Объект</p><h1>Расскажите о квартире</h1><p className="page-lead">Эти данные помогут подобрать состав работ и умные сценарии.</p>
-            <div className="form-grid">
-              <label className="field field--wide"><span>Тип объекта</span><select value={state.objectType} onChange={(event) => update({ objectType: event.target.value })}><option>Квартира в новостройке</option><option>Квартира во вторичном доме</option><option>Апартаменты</option></select></label>
-              <label className="field"><span>Площадь, м²</span><input type="number" min="10" max="500" value={state.area} onChange={(event) => update({ area: event.target.value })} /></label>
-              <label className="field"><span>Количество комнат</span><select value={state.rooms} onChange={(event) => update({ rooms: event.target.value })}><option>Студия</option><option>1</option><option>2</option><option>3</option><option>4+</option></select></label>
-              <label className="field field--wide"><span>Город</span><select value={state.city} onChange={(event) => update({ city: event.target.value })}><option>Москва</option><option>Санкт-Петербург</option></select><small>Умная квартира доступна в этих двух городах</small></label>
-            </div>
-          </>}
-          {state.step === 3 && <>
-            <p className="eyebrow">Пожелания</p><h1>Последние детали</h1><p className="page-lead">Заявка демонстрационная: данные никуда не отправляются.</p>
-            <div className="form-grid">
-              <label className="field field--wide"><span>Бюджет ремонта</span><select value={state.budget} onChange={(event) => update({ budget: event.target.value })}><option>До 3 000 000 ₽</option><option>3 000 000–5 000 000 ₽</option><option>Более 5 000 000 ₽</option><option>Пока не определён</option></select></label>
-              <label className="field"><span>Есть дизайн-проект?</span><select value={state.hasProject} onChange={(event) => update({ hasProject: event.target.value })}><option>Нет</option><option>Да</option><option>В процессе</option></select></label>
-              <label className="field"><span>Стадия ремонта</span><select value={state.repairStage} onChange={(event) => update({ repairStage: event.target.value })}><option>Планирую ремонт</option><option>Идут черновые работы</option><option>Идут чистовые работы</option></select></label>
-              <label className="field field--wide"><span>Какие сценарии важны?</span><textarea rows={5} placeholder="Например: тёплый свет вечером, защита от протечек, климат в детской" value={state.comment} onChange={(event) => update({ comment: event.target.value })} /></label>
-            </div>
-          </>}
-          <div className="calculator-actions">
-            {state.step > 1 && <button className="button button--ghost" onClick={() => update({ step: state.step - 1 })}>Назад</button>}
-            {state.step < 3 ? <button className="button" onClick={goNext}>Продолжить</button> : <button className="button" onClick={submit} data-testid="submit-prototype">Отправить демонстрационную заявку</button>}
-          </div>
+          {state.step === 2 && <div className="form-grid">
+            <label className="field">Тип объекта<select value={state.objectType} onChange={(event) => update({ objectType: event.target.value })}><option>Вторичка</option><option>Новостройка</option></select></label>
+            <label className="field">Площадь, м²<input type="number" min="10" value={state.area} onChange={(event) => update({ area: event.target.value })} /></label>
+            <label className="field">Количество комнат<select value={state.rooms} onChange={(event) => update({ rooms: event.target.value })}>{['1', '2', '3', '4', '5'].map((room) => <option key={room}>{room}</option>)}</select></label>
+            <label className="field">Наличие дизайн-проекта<select value={state.hasProject} onChange={(event) => update({ hasProject: event.target.value })}><option>Нет</option><option>Да</option></select></label>
+            <label className="field field--wide">Этап ремонта<select value={state.repairStage} onChange={(event) => update({ repairStage: event.target.value })}><option>Планирую ремонт</option><option>Идут черновые работы</option><option>Идут чистовые работы</option></select></label>
+            <label className="field field--wide">Интересующие функции<textarea rows={3} value={state.functions} onChange={(event) => update({ functions: event.target.value })} /></label>
+            <label className="field field--wide">Комментарий клиента<textarea rows={3} value={state.comment} onChange={(event) => update({ comment: event.target.value })} /></label>
+          </div>}
+          {state.step === 3 && <div className="application-review"><p><strong>Выбранные услуги:</strong> {calculatorServices.filter((service) => state.selectedServices.includes(service.id)).map((service) => service.name).join(', ') || 'не выбраны'}</p><p><strong>Объект:</strong> {state.objectType}, {state.area || '—'} м², комнат: {state.rooms}</p><p><strong>Наличие дизайн-проекта:</strong> {state.hasProject}</p><p><strong>Этап ремонта:</strong> {state.repairStage}</p>{state.functions && <p><strong>Интересующие функции:</strong> {state.functions}</p>}{state.comment && <p><strong>Комментарий клиента:</strong> {state.comment}</p>}</div>}
+          <div className="calculator-actions">{state.step < 3 ? <button type="button" className="primary-button" onClick={nextStep}>Продолжить</button> : <button type="button" className="primary-button" onClick={submit} data-testid="submit-prototype">Отправить заявку</button>}</div>
         </section>
         <CalculatorSummary state={state} />
       </div>
@@ -395,52 +453,46 @@ function SuccessPage() {
   const state = useMemo(loadCalculator, [])
   const smartSelected = state.selectedServices.includes('smart')
   return (
-    <main className="shell success-page">
-      <PrototypeBadge />
+    <main className="page-width success-page">
       <div className="success-card">
-        <div className="success-check">✓</div>
-        <p className="eyebrow">Готово</p>
-        <h1>{smartSelected ? 'Умная квартира добавлена в заявку' : 'Заявка на ремонт собрана'}</h1>
-        <p>В реальном сервисе специалист связался бы с вами, уточнил состав работ и подготовил индивидуальный расчёт.</p>
-        {smartSelected && <div className="success-selection"><strong>Умная квартира Sber</strong><span>{state.city} · {state.area} м² · {state.rooms} комн.</span>{state.preset && <small>Выбранный вариант: {state.preset}</small>}</div>}
-        <div className="actions"><Link className="button" to="/">Вернуться на главную</Link><button className="button button--ghost" onClick={() => navigate('/calculator')}>Изменить расчёт</button></div>
+        <span className="success-check">✓</span>
+        <h1>{smartSelected ? 'Умная квартира добавлена в заявку' : 'Заявка отправлена'}</h1>
+        <p>{smartSelected ? 'Менеджер уточнит нужные комнаты и сценарии во время звонка. Точную комплектацию и стоимость подготовит исполнитель после знакомства с проектом.' : 'Менеджер свяжется с вами и уточнит детали.'}</p>
+        <div className="button-row"><Link className="primary-button" to="/">На главную</Link><button type="button" className="secondary-button" onClick={() => navigate('/calculator')}>Изменить заявку</button></div>
       </div>
     </main>
   )
 }
 
 const flowSteps = [
-  { number: '01', title: 'Консультация', text: 'Специалист уточняет задачи, площадь, комнаты, бюджет и желаемые сценарии.', meta: ['город', 'тип объекта', 'площадь', 'комнаты', 'стадия ремонта'] },
-  { number: '02', title: 'Передача лида', text: 'При выбранной услуге заявка получает флаг «Умная квартира» и передаётся профильному исполнителю.', meta: ['service_id: smart', 'source / preset', 'handoff_required: true'] },
-  { number: '03', title: 'Проект и спецификация', text: 'Исполнитель согласует сценарии, устройства, точки питания, монтаж и финальную стоимость.', meta: ['сценарии', 'состав устройств', 'проект электрики', 'смета'] },
-  { number: '04', title: 'Установка и передача', text: 'Оборудование монтируют, подключают, настраивают и показывают клиенту готовые сценарии.', meta: ['монтаж', 'настройка', 'проверка', 'инструктаж клиента'] },
-]
+  ['01', 'Консультационный звонок', 'Менеджер фиксирует факт выбора или отказа, площадь и количество комнат, интересующие функции, наличие дизайн-проекта, этап ремонта и комментарий клиента.'],
+  ['02', 'Передача лида исполнителю', 'Исполнитель получает согласованные данные заявки.'],
+  ['03', 'Проект и спецификация', 'Исполнитель готовит проект, состав оборудования и спецификацию.'],
+  ['04', 'Монтаж, настройка и передача', 'Исполнитель монтирует устройства, настраивает сценарии, проверяет систему и передаёт её клиенту.'],
+] as const
 
 function FlowPage() {
-  return (
-    <main className="shell flow-page">
-      <PrototypeBadge />
-      <p className="eyebrow">Служебная схема</p><h1>Что происходит после заявки</h1><p className="page-lead">Экран нужен для демонстрации целевого процесса и не включён в клиентскую навигацию.</p>
-      <div className="flow-grid">{flowSteps.map((step) => <article key={step.number}><span>{step.number}</span><h2>{step.title}</h2><p>{step.text}</p><div>{step.meta.map((item) => <code key={item}>{item}</code>)}</div></article>)}</div>
-      <div className="handoff-map"><div><strong>Данные для передачи</strong><p>Выбор услуги · источник перехода · набор или комната · город · площадь · комнаты · стадия ремонта · бюджет · наличие дизайн‑проекта · комментарий клиента.</p></div><span>→</span><div><strong>Профильный исполнитель</strong><p>Получает контекст, готовит консультацию, спецификацию и расчёт.</p></div></div>
-    </main>
-  )
-}
-
-function NotFound() {
-  return <main className="shell not-found"><PrototypeBadge /><h1>Такого экрана нет</h1><p>Вернитесь на главную страницу прототипа.</p><Link className="button" to="/">На главную</Link></main>
+  return <main className="page-width flow-page"><p className="service-appendix">Служебное приложение</p><h1>Клиентский путь после заявки</h1><div className="flow-grid">{flowSteps.map(([number, title, text]) => <article key={number}><span>{number}</span><h2>{title}</h2><p>{text}</p></article>)}</div></main>
 }
 
 function Footer() {
-  return <footer><div className="shell footer-inner"><div><strong>СберУслуги × Умный дом Sber</strong><p>Демонстрационный макет · не является публичной офертой</p></div><div><a href="https://sberdevices.ru/smarthome/" target="_blank" rel="noreferrer">Об Умном доме Sber ↗</a><a href="https://sberdevices.ru/shop/category/smarthome/" target="_blank" rel="noreferrer">Каталог устройств ↗</a></div></div></footer>
+  return (
+    <footer className="site-footer"><div className="page-width"><p><a href="https://remont.sberuslugi.ru/" target="_blank" rel="noreferrer">Полный список городов, где доступны услуги сервиса</a></p><p>*Согласно п.7.4 «Соглашения об использовании сервиса» компания ООО «РДВ-софт» не является участником правоотношений, устанавливаемых между Пользователями по поводу согласования и выполнения работ.</p><p>По всем вопросам пишите на нашу почту: <a href="mailto:request@sberuslugi.ru">request@sberuslugi.ru</a></p><div className="footer-links"><a href="https://remont.sberuslugi.ru/help/agreements" target="_blank" rel="noreferrer">Условия использования</a><a href="https://api-remont.sberuslugi.ru/api/public/document/politika-obrabotki-personalnyh-dannyh" target="_blank" rel="noreferrer">Политика обработки персональных данных</a></div><p>© 2026 Ремонт со СберУслугами | Сервис предоставляется ООО «РДВ-софт», ИНН 7709969870</p><p className="prototype-note">Интерактивный прототип. Данные не отправляются.</p></div></footer>
+  )
 }
 
-function ScrollToTop() {
+function ScrollManager() {
   const location = useLocation()
-  useEffect(() => { window.scrollTo(0, 0) }, [location.pathname, location.search])
+  useEffect(() => {
+    if (!location.search.includes('anchor=')) window.scrollTo(0, 0)
+  }, [location.pathname, location.search])
   return null
 }
 
+function NotFound() {
+  return <main className="page-width not-found"><h1>Страница не найдена</h1><Link className="primary-button" to="/">На главную</Link></main>
+}
+
 export default function App() {
-  return <><ScrollToTop /><Header /><Routes><Route path="/" element={<Home />} /><Route path="/help/services" element={<HelpPage />} /><Route path="/calculator" element={<CalculatorPage />} /><Route path="/success" element={<SuccessPage />} /><Route path="/flow" element={<FlowPage />} /><Route path="*" element={<NotFound />} /></Routes><Footer /></>
+  return <><ScrollManager /><Header /><Routes><Route path="/" element={<Home />} /><Route path="/help/services" element={<HelpPage />} /><Route path="/calculator" element={<CalculatorPage />} /><Route path="/success" element={<SuccessPage />} /><Route path="/flow" element={<FlowPage />} /><Route path="*" element={<NotFound />} /></Routes><Footer /></>
 }
