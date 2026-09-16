@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 import test from 'node:test'
 
 const app = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8')
@@ -49,4 +49,21 @@ test('маршруты, согласованный success и события а�
   assert.match(app, /Умная квартира добавлена в заявку/)
   assert.match(app, /Менеджер уточнит нужные комнаты и сценарии во время звонка/)
   for (const event of ['impression', 'expand', 'select', 'deselect', 'continue_selected', 'submit', 'handoff_flag']) assert.match(analytics, new RegExp(`smart_apartment_${event}`))
+})
+
+test('подключены точные тексты FAQ и локальные материалы', () => {
+  assert.ok(app.includes('Умная квартира подстраивается под привычный ритм жизни.'))
+  assert.ok(app.includes('После настройки исполнитель передаёт клиенту доступ к установленным устройствам'))
+  assert.ok(app.includes('Систему можно дополнить совместимыми устройствами и новыми сценариями.'))
+  assert.ok(app.includes('Скачать инструкцию по монтажу и настройке, PDF'))
+  assert.ok(app.includes('Скачать каталог по настройке устройств и готовых сценариев, PDF'))
+  assert.doesNotMatch(app, /Контакты требуют подтверждения|отдельно закрепляются|ссылки-заглушки|готовый материал Figma/)
+})
+
+test('четвёртый ответ содержит ровно 27 итоговых PDF', async () => {
+  const folders = ['rooms', 'sets', 'apartment']
+  const files = (await Promise.all(folders.map((folder) => readdir(new URL(`../public/materials/${folder}/`, import.meta.url))))).flat()
+  assert.equal(files.filter((file) => file.endsWith('.pdf')).length, 27)
+  assert.equal(files.filter((file) => file.includes('vannaya-maximum')).length, 1)
+  assert.equal(files.filter((file) => file.includes('kuhnya-maximum')).length, 1)
 })

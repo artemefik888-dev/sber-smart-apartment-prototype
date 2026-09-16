@@ -12,22 +12,20 @@ export type FaqItem = {
   answer: string
 }
 
-export const figmaRoomsUrl =
-  'https://www.figma.com/design/Mk8FHszfi9p3HzP55tLpoT/SD-%7C-%D0%9D%D0%B0%D0%B1%D0%BE%D1%80%D1%8B-%D0%BF%D0%BE-%D0%BA%D0%BE%D0%BC%D0%BD%D0%B0%D1%82%D0%B0%D0%BC-%D0%90%D1%80%D1%82%D1%91%D0%BC%D1%83?node-id=1-5858'
-
 export const materials = {
-  installation: 'https://cdn-app.sberdevices.ru/misc/0.0.0/assets/sd-help/1c9249b9_Instruktsiya_po_montazhu_i_nastroike.pdf',
-  scenarios: 'https://cdn-app.sberdevices.ru/misc/0.0.0/assets/sd-help/2236f9eb_Katalog_stsenariev.pdf',
+  installation: './materials/guides/instruktsiya-po-montazhu-i-nastroike.pdf',
+  scenarios: './materials/guides/katalog-nastroiki-i-stsenariev.pdf',
   devices: 'https://cdn-app.sberdevices.ru/misc/0.0.0/assets/sd-help/94afd4ba_Katalog_ustroistv_umnogo_doma_Sber.pdf',
   contacts: 'https://cdn-app.sberdevices.ru/misc/0.0.0/assets/sd-help/a93493b8_Kak_s_nami_svyazatsya.pdf',
   professionalSupport: 'https://sberdevices.ru/b2b/',
+  compatibility: 'https://sberdevices.ru/help/smarthome/smarthome-about/devices/',
 }
 
 export const homeServices: Service[] = [
   { id: 'design', name: 'Дизайн-проект', description: 'Может включать планировочное решение и комплексный пакет чертежей, спецификацию отделочных материалов, осветительного оборудования, мебели, а также визуализацию', availability: 'Доступно во всех регионах', image: './assets/services/design.webp' },
   { id: 'cosmetic', name: 'Косметический ремонт', description: 'Легкое обновление помещений без полного цикла ремонтно-отделочных работ, перепланировки и внесения существенных изменений', availability: 'Доступно в Москве, Московской области, Санкт-Петербурге и других городах', image: './assets/services/cosmetic.webp' },
   { id: 'capital', name: 'Капитальный ремонт', description: 'Включает частичную или полную перепланировку, демонтаж старых отделочных материалов, замену коммуникаций, окон и дверей, черновую и чистовую отделку', availability: 'Доступно в Москве, Московской области, Санкт-Петербурге и других городах', image: './assets/services/capital.webp' },
-  { id: 'smart', name: 'Умная квартира Sber', description: 'Откройте для себя новый опыт жизни в квартире с Умным домом Sber. Он создаёт комфортную атмосферу и выполняет привычные действия по одной команде. Систему установят и настроят вместе с ремонтом.', availability: 'Доступно в Москве и Санкт-Петербурге' },
+  { id: 'smart', name: 'Умная квартира Sber', description: 'Откройте для себя новый опыт жизни в квартире с Умным домом Sber. Он создаёт комфортную атмосферу и выполняет привычные действия по одной команде. Систему установят и настроят вместе с ремонтом.', availability: 'Доступно в Москве и Санкт-Петербурге', image: './assets/smart-home-room.webp' },
   { id: 'acceptance', name: 'Приемка квартиры', description: 'Экспертная помощь перед приёмкой квартиры у застройщика: проверка жилья на соответствие строительным нормам и договору, составление дефектной ведомости и фотоотчета по выявленным нарушениям', availability: 'Доступно в Москве и Московской области', image: './assets/services/acceptance.webp' },
   { id: 'control', name: 'Строительный контроль', description: 'Комплекс услуг по сопровождению ремонта, включающий регулярные выезды специалиста на объект для проверки соответствия проводимых работ нормативным требованиям, стоимости и объему работ', availability: 'Доступно в Москве и Московской области', image: './assets/services/control.webp' },
   { id: 'supervision', name: 'Технический надзор', description: 'Специалист независимой службы проверяет качество выполненных работ, их соответствие проектной документации, соблюдение правил и технологий производства работ, результатом проверки является отчет', availability: 'Доступно в Москве и Московской области', image: './assets/services/supervision.webp' },

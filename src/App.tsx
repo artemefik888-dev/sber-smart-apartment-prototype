@@ -4,13 +4,13 @@ import { track, trackImpression } from './analytics'
 import {
   calculatorServices,
   existingFaq,
-  figmaRoomsUrl,
   homeServices,
   materials,
   smartQuestionTitles,
 } from './data'
 
 const CALCULATOR_KEY = 'sber-smart-apartment-calculator-v2'
+const CALCULATOR_COMPLETED_KEY = 'sber-smart-apartment-calculator-completed'
 
 function Logo() {
   return (
@@ -63,7 +63,7 @@ function Home() {
           <h1>Ремонт с&nbsp;комфортом</h1>
           <p>Оплачивайте работу поэтапно и следите за ходом ремонта онлайн с помощью сервиса «Ремонт со СберУслугами»</p>
           <div className="button-row">
-            <Link className="primary-button" to="/calculator">Оставить заявку</Link>
+            <Link className="primary-button" to="/calculator?source=main">Оставить заявку</Link>
             <Link className="secondary-button" to="/?anchor=portfolio">Посмотреть примеры</Link>
           </div>
         </div>
@@ -88,7 +88,7 @@ function Home() {
         <div className="services-carousel" ref={carouselRef} data-testid="services-carousel">
           {homeServices.map((service) => (
             <article className="service-card" key={service.id} data-service-id={service.id} data-testid={service.id === 'smart' ? 'home-smart-card' : undefined}>
-              {service.image ? <img className="service-card__image" src={service.image} alt={service.name} /> : <div className="service-card__image service-card__placeholder">Утверждённое изображение<br />требует разрешения на публикацию</div>}
+              {service.image ? <img className="service-card__image" src={service.image} alt={service.name} /> : null}
               <div className="service-card__body">
                 <h3>{service.name}</h3>
                 <p>{service.description}</p>
@@ -111,7 +111,7 @@ function Home() {
           <fieldset><legend>Тип жилья</legend><label><input type="radio" name="homeType" defaultChecked /> Новостройка</label><label><input type="radio" name="homeType" /> Вторичка</label></fieldset>
           <label className="plain-field">Укажите площадь квартиры, м²<input type="number" min="10" aria-label="Укажите площадь квартиры, м²" /></label>
           <fieldset className="room-buttons"><legend>Количество комнат</legend>{[1, 2, 3, 4, 5].map((room) => <button type="button" key={room}>{room}</button>)}</fieldset>
-          <Link className="primary-button" to="/calculator">Продолжить</Link>
+          <Link className="primary-button" to="/calculator?source=main">Продолжить</Link>
         </div>
         <img src="./assets/calculator.webp" alt="" />
       </section>
@@ -174,19 +174,31 @@ function TextAnswer({ text }: { text: string }) {
   return <>{text.split(/\n\n/).map((paragraph) => <p key={paragraph}>{paragraph.split('\n').map((line, index) => <Fragment key={`${line}-${index}`}>{index > 0 && <br />}{line}</Fragment>)}</p>)}</>
 }
 
-const rooms = ['Ванная', 'Прихожая', 'Гостиная', 'Детская', 'Кухня', 'Спальня']
+const roomSolutions = [
+  ['Ванная', 'vannaya'],
+  ['Прихожая', 'prihozhaya'],
+  ['Гостиная', 'gostinaya'],
+  ['Детская', 'detskaya'],
+  ['Кухня', 'kuhnya'],
+  ['Спальня', 'spalnya'],
+] as const
+const roomLevels = [
+  ['Базовый', 'basic'],
+  ['Комфорт', 'comfort'],
+  ['Максимум', 'maximum'],
+] as const
 const readySets = [
-  ['Умная прихожая', 'от 12 560 ₽', 'Контроль входной двери, автоматическое включение света при открытии двери, колонка приветствует гостя, уведомление о входе/выходе.'],
-  ['Умный свет', 'индивидуальный расчёт', 'Позволяет управлять светом удаленно через приложение или голосовыми командами.'],
-  ['Умная спальня', '22 740 ₽', 'Ночью в комнате будет прохладно, при котором сон лучше и глубже, а днём — идеальная для активности умеренная температура.'],
-  ['Умный климат', 'от 21 550 ₽', 'Умный дом следит за микроклиматом в квартире, помогает автоматически поддерживать идеальную температуру и влажность.'],
-  ['Безопасный дом', 'от 16 550 ₽', 'Защита от воров, забытых утюгов, перерасхода электричества и затопления квартиры, соседей.'],
-  ['Умная детская', '15 360 ₽', 'Умный дом создаст в детской правильную температуру для сна и мягкое освещение, которое постепенно погаснет.'],
+  ['Умная прихожая', 'от 12 560 ₽', 'Контроль входной двери, автоматическое включение света при открытии двери, колонка приветствует гостя, уведомление о входе/выходе.', 'gotovyy-nabor-umnaya-prihozhaya.pdf'],
+  ['Умный свет', 'индивидуальный расчёт', 'Позволяет управлять светом удаленно через приложение или голосовыми командами.', 'gotovyy-nabor-umnyy-svet.pdf'],
+  ['Умная спальня', '22 740 ₽', 'Ночью в комнате будет прохлада, при которой сон лучше и глубже, а днём — идеальная для активности умеренная температура.', 'gotovyy-nabor-umnaya-spalnya.pdf'],
+  ['Умный климат', 'от 21 550 ₽', 'Умный дом следит за микроклиматом в квартире, помогает автоматически поддерживать идеальную температуру и влажность.', 'gotovyy-nabor-umnyy-klimat.pdf'],
+  ['Безопасный дом', 'от 16 550 ₽', 'Защита от воров, забытых утюгов, перерасхода электричества и затопления квартиры, соседей.', 'gotovyy-nabor-bezopasnyy-dom.pdf'],
+  ['Умная детская', '15 360 ₽', 'Умный дом создаст в детской правильную температуру для сна и мягкое освещение, которое постепенно погаснет.', 'gotovyy-nabor-umnaya-detskaya.pdf'],
 ] as const
 const wholeApartment = [
-  ['компактное решение для студии или однокомнатной квартиры', '39 090 ₽'],
-  ['решение для просторной однокомнатной или двухкомнатной квартиры', '57 630 ₽'],
-  ['расширенное решение для двухкомнатной квартиры и квартиры большей площади', '79 960 ₽'],
+  ['Компактное решение для студии или однокомнатной квартиры', '39 090 ₽', 'reshenie-dlya-kvartiry-s.pdf'],
+  ['Решение для просторной однокомнатной или двухкомнатной квартиры', '57 630 ₽', 'reshenie-dlya-kvartiry-m.pdf'],
+  ['Расширенное решение для двухкомнатной квартиры и квартиры большей площади', '79 960 ₽', 'reshenie-dlya-kvartiry-l.pdf'],
 ] as const
 
 function SmartAnswer({ index, showReadySolutions }: { index: number; showReadySolutions: () => void }) {
@@ -199,11 +211,8 @@ function SmartAnswer({ index, showReadySolutions }: { index: number; showReadySo
       </>
     case 1:
       return <>
-        <p><strong>Освещение:</strong> выключатели, розетки, лампы и сценарии света по времени, команде или событию.</p>
-        <p><strong>Климат:</strong> контроль температуры и влажности, управление совместимым отоплением и тёплым полом.</p>
-        <p><strong>Спокойствие за квартиру:</strong> датчики открытия и движения, защита от протечек и уведомления о событиях.</p>
-        <p><strong>Мультимедиа и голосовое управление:</strong> совместимые колонки и устройства для запуска сценариев.</p>
-        <p>Состав каждой категории уточняет специалист после знакомства с проектом квартиры.</p>
+        <p>Умная квартира подстраивается под привычный ритм жизни. Утром свет помогает проснуться, вечером создаёт комфортную атмосферу. В комнатах автоматически поддерживается нужная температура, а датчики вовремя сообщают о протечке, открытии двери или движении.</p>
+        <p>Несколько действий можно объединить в готовый сценарий и запускать одной командой — в приложении или голосом. Специалист подберёт решение под квартиру, учтёт устройства в проекте ремонта и настроит систему перед передачей.</p>
       </>
     case 2:
       return <>
@@ -212,17 +221,18 @@ function SmartAnswer({ index, showReadySolutions }: { index: number; showReadySo
       </>
     case 3:
       return <>
-        <h4>Возможности умной квартиры</h4>
-        <p>В каждом готовом материале представлены три уровня: Базовый, Комфорт и Максимум.</p>
-        <ul className="material-list">{rooms.map((room) => <li key={room}><a href={figmaRoomsUrl} target="_blank" rel="noreferrer">{room}</a><span>готовый материал Figma</span></li>)}</ul>
+        <h4>Решения по комнатам</h4>
+        <ul className="material-list">{roomSolutions.flatMap(([room, roomSlug]) => roomLevels.map(([level, levelSlug]) => <li key={`${roomSlug}-${levelSlug}`}><a href={`./materials/rooms/${roomSlug}-${levelSlug}.pdf`} download>{room} — {level}</a><span>Скачать PDF</span></li>))}</ul>
         <h4>Готовые наборы</h4>
-        <ul className="material-list">{readySets.map(([name, price, text]) => <li key={name}><a href="#materials-publication-approval">{name} — {price}</a><span>{text}</span></li>)}</ul>
+        <ul className="material-list">{readySets.map(([name, price, text, filename]) => <li key={name}><a href={`./materials/sets/${filename}`} download>{name} — {price}</a><span>{text}</span></li>)}</ul>
         <h4>Решения для всей квартиры</h4>
-        <ul className="material-list">{wholeApartment.map(([name, price]) => <li key={name}><a href="#materials-publication-approval">{name} — {price}</a><span>Можно расширить: Безопасность — 29 990 ₽; расширенный Климат — 14 770 ₽; расширенный Свет — 3 980 ₽; Мультимедиа — 16 989 ₽.</span></li>)}</ul>
-        <p className="verification-note" id="materials-publication-approval">Утверждённые слайды 5–14 требуют отдельного разрешения на публичное размещение. В прототипе оставлены нейтральные ссылки-заглушки.</p>
+        <ul className="material-list">{wholeApartment.map(([name, price, filename]) => <li key={name}><a href={`./materials/apartment/${filename}`} download>{name} — {price}</a><span>Можно расширить: Безопасность — 29 990 ₽; расширенный Климат — 14 770 ₽; расширенный Свет — 3 980 ₽; Мультимедиа — 16 989 ₽.</span></li>)}</ul>
       </>
     case 4:
-      return <p>Да. Готовый набор служит отправной точкой. Специалист может изменить количество устройств, добавить нужные комнаты или функции и исключить лишние позиции. Перед расчётом исполнитель проверяет планировку, электрику и совместимость оборудования.</p>
+      return <>
+        <p>Да. Готовый набор служит отправной точкой. Специалист может изменить количество устройств, добавить нужные комнаты или функции и исключить лишние позиции. Перед расчётом исполнитель проверяет планировку, электрику и совместимость оборудования.</p>
+        <p className="answer-links"><button type="button" className="inline-link" onClick={showReadySolutions}>Посмотреть готовые решения</button></p>
+      </>
     case 5:
       return <p>Дизайнер или инженер отмечает размещение выключателей, розеток, датчиков, терморегуляторов, колонок и других устройств. Комплектатор готовит спецификацию оборудования. Монтаж, настройка и дополнительные работы указываются в смете отдельно от стоимости устройств, чтобы клиент видел полный состав решения.</p>
     case 6:
@@ -232,25 +242,27 @@ function SmartAnswer({ index, showReadySolutions }: { index: number; showReadySo
       </>
     case 7:
       return <>
-        <p>Исполнитель устанавливает устройства на подходящих этапах ремонта по согласованной схеме. После монтажа специалист подключает совместимые устройства, настраивает выбранные сценарии, проверяет их работу и показывает клиенту основные действия в приложении и с помощью голосового управления.</p>
-        <p><a href={materials.installation} target="_blank" rel="noreferrer">Инструкция по монтажу и настройке</a></p>
+        <p>Исполнитель устанавливает устройства на подходящих этапах ремонта по согласованной схеме. После монтажа специалист подключает установленные устройства к системе, настраивает выбранные сценарии, проверяет их работу и показывает клиенту, как управлять системой в приложении и с помощью голосовых команд.</p>
+        <p><a href={materials.installation} download>Скачать инструкцию по монтажу и настройке, PDF</a></p>
       </>
     case 8:
       return <>
-        <p>При передаче системы клиент получает доступ к установленным устройствам, перечень настроенных сценариев, инструкцию по использованию и контакты поддержки. Исполнитель показывает работу основных функций и объясняет, как изменить доступные настройки.</p>
-        <p>Для реального запуска отдельно закрепляются состав акта передачи, правила привязки устройств к аккаунту клиента и граница ответственности между исполнителем, СберУслугами и SberDevices.</p>
+        <p>После настройки исполнитель передаёт клиенту доступ к установленным устройствам и перечень настроенных сценариев. Он показывает работу основных функций и объясняет, как пользоваться системой и изменять доступные настройки. Клиент также получает инструкцию и контакты поддержки.</p>
+        <p><a href={materials.scenarios} download>Скачать каталог по настройке устройств и готовых сценариев, PDF</a></p>
       </>
     case 9:
       return <ul className="simple-links"><li><a href={materials.scenarios} target="_blank" rel="noreferrer">Каталог сценариев и настроек</a></li><li><a href={materials.devices} target="_blank" rel="noreferrer">Каталог устройств Умного дома Sber</a></li></ul>
     case 10:
-      return <p>Систему можно дополнить совместимыми устройствами и новыми сценариями. Перед покупкой следует проверить совместимость с уже установленным оборудованием и технические условия в квартире.</p>
+      return <>
+        <p>Систему можно дополнить совместимыми устройствами и новыми сценариями. Перед покупкой специалист проверит совместимость с установленным оборудованием и технические условия в квартире. Если вы захотите расширить систему после ремонта, СберУслуги помогут подобрать подходящее решение и организовать установку.</p>
+        <p><a href={materials.compatibility} target="_blank" rel="noreferrer">Проверить совместимость устройств</a></p>
+      </>
     case 11:
       return <>
         <h4>Для пользователей устройств</h4>
         <p><a href="tel:900">900</a> — бесплатно с мобильных по России<br /><a href="tel:+74955005550">+7 495 500-55-50</a> — по тарифу оператора<br /><a href="https://t.me/sberdevices_support_bot" target="_blank" rel="noreferrer">@sberdevices_support_bot</a><br /><a href="https://max.ru/id7730253720_bot" target="_blank" rel="noreferrer">max.ru/id7730253720_bot</a></p>
         <h4>Для профессионалов и электриков</h4>
         <p><a href="tel:88003006556">8 800 300-65-56</a> — звонок по России бесплатный<br /><a href={materials.professionalSupport} target="_blank" rel="noreferrer">Чат на официальном сайте SberDevices</a><br /><a href={materials.contacts} target="_blank" rel="noreferrer">Как с нами связаться</a></p>
-        <p className="verification-note">Контакты требуют подтверждения владельцем поддержки.</p>
       </>
     default:
       return null
@@ -301,12 +313,12 @@ function HelpPage() {
         </aside>
         <section className="help-content">
           <h2>Услуги</h2>
-          <div className="faq-list">
-            {existingFaq.map((item) => <AccordionRow key={item.id} title={item.question} open={existingOpen === item.id} onToggle={() => setExistingOpen(existingOpen === item.id ? null : item.id)}><TextAnswer text={item.answer} /></AccordionRow>)}
-          </div>
           <div className="smart-faq-group" id="smart-apartment" ref={smartGroupRef} data-testid="smart-faq-group">
             <h3>Умная квартира Sber</h3>
             {smartQuestionTitles.map((title, index) => <AccordionRow id={`smart-question-${index + 1}`} key={title} title={title} open={smartOpen.has(index)} onToggle={() => toggleSmart(index)} testId={`smart-question-${index + 1}`}><SmartAnswer index={index} showReadySolutions={showReadySolutions} /></AccordionRow>)}
+          </div>
+          <div className="faq-list existing-faq-list">
+            {existingFaq.map((item) => <AccordionRow key={item.id} title={item.question} open={existingOpen === item.id} onToggle={() => setExistingOpen(existingOpen === item.id ? null : item.id)}><TextAnswer text={item.answer} /></AccordionRow>)}
           </div>
         </section>
       </div>
@@ -348,6 +360,15 @@ function loadCalculator(): CalculatorState {
   }
 }
 
+function loadCalculatorForEntry(search: string): CalculatorState {
+  const isNewApplication = new URLSearchParams(search).get('source') === 'main'
+    && localStorage.getItem(CALCULATOR_COMPLETED_KEY) === '1'
+  if (!isNewApplication) return loadCalculator()
+  localStorage.removeItem(CALCULATOR_KEY)
+  localStorage.removeItem(CALCULATOR_COMPLETED_KEY)
+  return { ...defaultCalculator, selectedServices: [] }
+}
+
 function CalculatorSummary({ state }: { state: CalculatorState }) {
   const selected = calculatorServices.filter((service) => state.selectedServices.includes(service.id))
   return (
@@ -363,12 +384,15 @@ function CalculatorSummary({ state }: { state: CalculatorState }) {
 function CalculatorPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const [state, setState] = useState<CalculatorState>(loadCalculator)
+  const [state, setState] = useState<CalculatorState>(() => loadCalculatorForEntry(location.search))
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const processedDeepLink = useRef(false)
   const allSelected = state.selectedServices.length === calculatorServices.length
 
   useEffect(() => localStorage.setItem(CALCULATOR_KEY, JSON.stringify(state)), [state])
+  useEffect(() => {
+    if (new URLSearchParams(location.search).get('source') === 'main') navigate('/calculator', { replace: true })
+  }, [location.search, navigate])
   useEffect(() => {
     const params = new URLSearchParams(location.search)
     if (params.get('smart') !== '1' || processedDeepLink.current) return
@@ -408,6 +432,7 @@ function CalculatorPage() {
     const smartSelected = state.selectedServices.includes('smart')
     track('smart_apartment_submit', { smart_selected: smartSelected, area: state.area, rooms: state.rooms })
     track('smart_apartment_handoff_flag', { handoff_required: smartSelected, service_id: 'smart' })
+    localStorage.setItem(CALCULATOR_COMPLETED_KEY, '1')
     navigate('/success')
   }
 
