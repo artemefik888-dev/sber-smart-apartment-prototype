@@ -175,18 +175,14 @@ function TextAnswer({ text }: { text: string }) {
 }
 
 const roomSolutions = [
-  ['Ванная', 'vannaya'],
-  ['Прихожая', 'prihozhaya'],
-  ['Гостиная', 'gostinaya'],
-  ['Детская', 'detskaya'],
-  ['Кухня', 'kuhnya'],
-  ['Спальня', 'spalnya'],
+  ['Ванная — базовый, комфорт, максимум', 'vannaya-basic-comfort-maximum.pdf'],
+  ['Прихожая — базовый, комфорт, максимум', 'prihozhaya-basic-comfort-maximum.pdf'],
+  ['Гостиная — базовый, комфорт, максимум', 'gostinaya-basic-comfort-maximum.pdf'],
+  ['Детская — базовый, комфорт, максимум', 'detskaya-basic-comfort-maximum.pdf'],
+  ['Кухня — базовый, комфорт, максимум', 'kuhnya-basic-comfort-maximum.pdf'],
+  ['Спальня — базовый, комфорт, максимум', 'spalnya-basic-comfort-maximum.pdf'],
 ] as const
-const roomLevels = [
-  ['Базовый', 'basic'],
-  ['Комфорт', 'comfort'],
-  ['Максимум', 'maximum'],
-] as const
+const roomSolutionsBase = 'https://github.com/artemefik888-dev/sber-smart-apartment-prototype/releases/download/room-solutions-2026-09-24'
 const readySets = [
   ['Умная прихожая', 'от 12 560 ₽', 'Контроль входной двери, автоматическое включение света при открытии двери, колонка приветствует гостя, уведомление о входе/выходе.', 'gotovyy-nabor-umnaya-prihozhaya.pdf'],
   ['Умный свет', 'индивидуальный расчёт', 'Позволяет управлять светом удаленно через приложение или голосовыми командами.', 'gotovyy-nabor-umnyy-svet.pdf'],
@@ -205,64 +201,35 @@ function SmartAnswer({ index, showReadySolutions }: { index: number; showReadySo
   switch (index) {
     case 0:
       return <>
-        <p>«Умная квартира Sber» объединяет освещение, климат, защиту от протечек, контроль событий и мультимедиа в одну систему управления. Исполнитель учитывает устройства в проекте ремонта, устанавливает их на подходящих этапах работ, настраивает выбранные сценарии и показывает клиенту, как пользоваться системой.</p>
+        <p>Умный дом объединяет освещение, климат, защиту от протечек, контроль событий и мультимедиа в одну систему управления. Исполнитель учитывает устройства в проекте ремонта, устанавливает их на подходящих этапах работ, настраивает выбранные сценарии и показывает клиенту, как пользоваться системой.</p>
         <p>Управлять совместимыми устройствами можно в приложении и с помощью доступных голосовых команд. Точный состав системы зависит от площади, количества комнат, инженерных решений и задач клиента.</p>
-        <p className="answer-links"><button type="button" className="inline-link" onClick={showReadySolutions}>Посмотреть готовые решения</button><a href={materials.devices} target="_blank" rel="noreferrer">Каталог устройств Умного дома Sber</a></p>
+        <p className="answer-links"><button type="button" className="inline-link" onClick={showReadySolutions}>Посмотреть готовые решения</button><a href={materials.devices} target="_blank" rel="noreferrer">Каталог устройств Умного дома</a></p>
       </>
     case 1:
       return <>
-        <p>Умная квартира подстраивается под привычный ритм жизни. Утром свет помогает проснуться, вечером создаёт комфортную атмосферу. В комнатах автоматически поддерживается нужная температура, а датчики вовремя сообщают о протечке, открытии двери или движении.</p>
-        <p>Несколько действий можно объединить в готовый сценарий и запускать одной командой — в приложении или голосом. Специалист подберёт решение под квартиру, учтёт устройства в проекте ремонта и настроит систему перед передачей.</p>
+        <p>Выберите умный дом в конфигураторе заявки или сообщите об этом менеджеру во время консультации. Менеджер уточнит задачи и передаст их исполнителю. Исполнитель предложит состав оборудования, проверит технические условия, добавит работы и устройства в смету. После согласования система становится частью общего проекта ремонта.</p>
+        <p><strong>Этапы:</strong> заявка, консультация, проект и смета, монтаж, настройка и передача.</p>
       </>
     case 2:
       return <>
-        <p>Выберите «Умную квартиру» в конфигураторе заявки или сообщите об этом менеджеру во время консультации. Менеджер уточнит задачи и передаст их исполнителю. Исполнитель предложит состав оборудования, проверит технические условия, добавит работы и устройства в смету. После согласования система становится частью общего проекта ремонта.</p>
-        <p><strong>Этапы:</strong> заявка, консультация, проект и смета, монтаж, настройка и передача.</p>
-      </>
-    case 3:
-      return <>
         <h4>Решения по комнатам</h4>
-        <ul className="material-list">{roomSolutions.flatMap(([room, roomSlug]) => roomLevels.map(([level, levelSlug]) => <li key={`${roomSlug}-${levelSlug}`}><a href={`./materials/rooms/${roomSlug}-${levelSlug}.pdf`} download>{room} — {level}</a><span>Скачать PDF</span></li>))}</ul>
+        <ul className="material-list">{roomSolutions.map(([name, filename]) => <li key={filename}><a href={`${roomSolutionsBase}/${filename}`} download>{name}</a><span>Скачать PDF</span></li>)}</ul>
         <h4>Готовые наборы</h4>
         <ul className="material-list">{readySets.map(([name, price, text, filename]) => <li key={name}><a href={`./materials/sets/${filename}`} download>{name} — {price}</a><span>{text}</span></li>)}</ul>
         <h4>Решения для всей квартиры</h4>
         <ul className="material-list">{wholeApartment.map(([name, price, filename]) => <li key={name}><a href={`./materials/apartment/${filename}`} download>{name} — {price}</a><span>Можно расширить: Безопасность — 29 990 ₽; расширенный Климат — 14 770 ₽; расширенный Свет — 3 980 ₽; Мультимедиа — 16 989 ₽.</span></li>)}</ul>
       </>
-    case 4:
-      return <>
-        <p>Да. Готовый набор служит отправной точкой. Специалист может изменить количество устройств, добавить нужные комнаты или функции и исключить лишние позиции. Перед расчётом исполнитель проверяет планировку, электрику и совместимость оборудования.</p>
-        <p className="answer-links"><button type="button" className="inline-link" onClick={showReadySolutions}>Посмотреть готовые решения</button></p>
-      </>
-    case 5:
+    case 3:
       return <p>Дизайнер или инженер отмечает размещение выключателей, розеток, датчиков, терморегуляторов, колонок и других устройств. Комплектатор готовит спецификацию оборудования. Монтаж, настройка и дополнительные работы указываются в смете отдельно от стоимости устройств, чтобы клиент видел полный состав решения.</p>
-    case 6:
-      return <>
-        <p>Стоимость складывается из оборудования, проектирования, монтажа и настройки. На неё влияют площадь квартиры, количество комнат, выбранные функции и состояние электрики. Точный расчёт исполнитель подготовит после консультации и проверки проекта.</p>
-        <p>Примеры стоимости готовых наборов и решений приведены в ответе «Какие готовые решения можно выбрать». Окончательная комплектация и стоимость определяются после консультации. Монтаж и настройка могут рассчитываться отдельно.</p>
-      </>
-    case 7:
+    case 4:
       return <>
         <p>Исполнитель устанавливает устройства на подходящих этапах ремонта по согласованной схеме. После монтажа специалист подключает установленные устройства к системе, настраивает выбранные сценарии, проверяет их работу и показывает клиенту, как управлять системой в приложении и с помощью голосовых команд.</p>
         <p><a href={materials.installation} download>Скачать инструкцию по монтажу и настройке, PDF</a></p>
       </>
-    case 8:
+    case 5:
       return <>
         <p>После настройки исполнитель передаёт клиенту доступ к установленным устройствам и перечень настроенных сценариев. Он показывает работу основных функций и объясняет, как пользоваться системой и изменять доступные настройки. Клиент также получает инструкцию и контакты поддержки.</p>
         <p><a href={materials.scenarios} download>Скачать каталог по настройке устройств и готовых сценариев, PDF</a></p>
-      </>
-    case 9:
-      return <ul className="simple-links"><li><a href={materials.scenarios} target="_blank" rel="noreferrer">Каталог сценариев и настроек</a></li><li><a href={materials.devices} target="_blank" rel="noreferrer">Каталог устройств Умного дома Sber</a></li></ul>
-    case 10:
-      return <>
-        <p>Систему можно дополнить совместимыми устройствами и новыми сценариями. Перед покупкой специалист проверит совместимость с установленным оборудованием и технические условия в квартире. Если вы захотите расширить систему после ремонта, СберУслуги помогут подобрать подходящее решение и организовать установку.</p>
-        <p><a href={materials.compatibility} target="_blank" rel="noreferrer">Проверить совместимость устройств</a></p>
-      </>
-    case 11:
-      return <>
-        <h4>Для пользователей устройств</h4>
-        <p><a href="tel:900">900</a> — бесплатно с мобильных по России<br /><a href="tel:+74955005550">+7 495 500-55-50</a> — по тарифу оператора<br /><a href="https://t.me/sberdevices_support_bot" target="_blank" rel="noreferrer">@sberdevices_support_bot</a><br /><a href="https://max.ru/id7730253720_bot" target="_blank" rel="noreferrer">max.ru/id7730253720_bot</a></p>
-        <h4>Для профессионалов и электриков</h4>
-        <p><a href="tel:88003006556">8 800 300-65-56</a> — звонок по России бесплатный<br /><a href={materials.professionalSupport} target="_blank" rel="noreferrer">Чат на официальном сайте SberDevices</a><br /><a href={materials.contacts} target="_blank" rel="noreferrer">Как с нами связаться</a></p>
       </>
     default:
       return null
@@ -297,8 +264,8 @@ function HelpPage() {
   }
 
   const showReadySolutions = () => {
-    setSmartOpen((current) => new Set([...current, 3]))
-    window.setTimeout(() => document.getElementById('smart-question-4')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+    setSmartOpen((current) => new Set([...current, 2]))
+    window.setTimeout(() => document.getElementById('smart-question-3')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
   }
 
   const menu = ['О сервисе', 'Исполнители', 'Услуги', 'Оплата и возвраты', 'Кредитные предложения', 'Акции', 'Условия использования']
@@ -314,7 +281,7 @@ function HelpPage() {
         <section className="help-content">
           <h2>Услуги</h2>
           <div className="smart-faq-group" id="smart-apartment" ref={smartGroupRef} data-testid="smart-faq-group">
-            <h3>Умная квартира Sber</h3>
+            <h3>Умный дом</h3>
             {smartQuestionTitles.map((title, index) => <AccordionRow id={`smart-question-${index + 1}`} key={title} title={title} open={smartOpen.has(index)} onToggle={() => toggleSmart(index)} testId={`smart-question-${index + 1}`}><SmartAnswer index={index} showReadySolutions={showReadySolutions} /></AccordionRow>)}
           </div>
           <div className="faq-list existing-faq-list">
@@ -481,7 +448,7 @@ function SuccessPage() {
     <main className="page-width success-page">
       <div className="success-card">
         <span className="success-check">✓</span>
-        <h1>{smartSelected ? 'Умная квартира добавлена в заявку' : 'Заявка отправлена'}</h1>
+        <h1>{smartSelected ? 'Умный дом добавлен в заявку' : 'Заявка отправлена'}</h1>
         <p>{smartSelected ? 'Менеджер уточнит нужные комнаты и сценарии во время звонка. Точную комплектацию и стоимость подготовит исполнитель после знакомства с проектом.' : 'Менеджер свяжется с вами и уточнит детали.'}</p>
         <div className="button-row"><Link className="primary-button" to="/">На главную</Link><button type="button" className="secondary-button" onClick={() => navigate('/calculator')}>Изменить заявку</button></div>
       </div>
