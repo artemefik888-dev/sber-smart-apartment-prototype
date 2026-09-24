@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - room-solutions-2026-09-24
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -11,6 +12,8 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: room-solutions-2026-09-24
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,11 +21,7 @@ jobs:
           python-version: '3.13'
       - run: python -m pip install pypdf==6.10.0
       - run: python scripts/build_room_solutions.py --output-dir release-assets
-      - name: Create release with the six room PDFs
+      - name: Upload all six room PDFs to the public release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" release-assets/*.pdf --verify-tag --draft --title "Решения по комнатам" --notes ""
-      - name: Publish release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release edit "$GITHUB_REF_NAME" --draft=false
+        run: gh release upload "$RELEASE_TAG" release-assets/*.pdf --clobber
