@@ -58,7 +58,7 @@ test('умная группа стоит первой, а переход из в
 test('каталог устройств и инструкции доступны из согласованных вопросов', async ({ page }) => {
   await page.goto('./#/help/services?section=smart-apartment')
   await expect(page.getByTestId('smart-question-1')).toHaveAttribute('aria-expanded', 'true')
-  await expect(page.getByRole('link', { name: 'Каталог устройств Умного дома' })).toHaveAttribute('href', 'https://cdn-app.sberdevices.ru/misc/0.0.0/assets/sd-help/94afd4ba_Katalog_ustroistv_umnogo_doma_Sber.pdf')
+  await expect(page.getByRole('link', { name: 'Каталог устройств Умного дома' })).toHaveAttribute('href', './materials/guides/katalog-ustroistv-umnogo-doma.pdf')
   await page.getByTestId('smart-question-5').click()
   await expect(page.getByRole('link', { name: 'Скачать инструкцию по монтажу и настройке, PDF' })).toHaveAttribute('download', '')
   await page.getByTestId('smart-question-6').click()
