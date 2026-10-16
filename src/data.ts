@@ -14,7 +14,6 @@ export type FaqItem = {
 
 export const materials = {
   installation: './materials/guides/instruktsiya-po-montazhu-i-nastroike.pdf',
-  scenarios: './materials/guides/katalog-nastroiki-i-stsenariev.pdf',
   devices: './materials/guides/katalog-ustroistv-umnogo-doma.pdf',
   contacts: 'https://cdn-app.sberdevices.ru/misc/0.0.0/assets/sd-help/a93493b8_Kak_s_nami_svyazatsya.pdf',
   professionalSupport: 'https://sberdevices.ru/b2b/',

@@ -55,14 +55,16 @@ test('умная группа стоит первой, а переход из в
   await expect(roomLinks.last()).toHaveText('Спальня — базовый, комфорт, максимум')
 })
 
-test('каталог устройств и инструкции доступны из согласованных вопросов', async ({ page }) => {
+test('каталог устройств и инструкция доступны, а каталог сценариев удалён', async ({ page }) => {
   await page.goto('./#/help/services?section=smart-apartment')
   await expect(page.getByTestId('smart-question-1')).toHaveAttribute('aria-expanded', 'true')
   await expect(page.getByRole('link', { name: 'Каталог устройств Умного дома' })).toHaveAttribute('href', './materials/guides/katalog-ustroistv-umnogo-doma.pdf')
   await page.getByTestId('smart-question-5').click()
   await expect(page.getByRole('link', { name: 'Скачать инструкцию по монтажу и настройке, PDF' })).toHaveAttribute('download', '')
   await page.getByTestId('smart-question-6').click()
-  await expect(page.getByRole('link', { name: 'Скачать каталог по настройке устройств и готовых сценариев, PDF' })).toHaveAttribute('download', '')
+  await expect(page.getByTestId('smart-question-6')).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.getByText('После настройки исполнитель передаёт клиенту доступ', { exact: false })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Скачать каталог по настройке устройств и готовых сценариев, PDF' })).toHaveCount(0)
 })
 
 test('все 6 вопросов присутствуют и раскрываются независимо', async ({ page }) => {
